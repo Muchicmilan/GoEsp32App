@@ -82,7 +82,7 @@ func setLed(c *gin.Context) {
 
 func main() {
 	connStr := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",
-		os.Getenv("DB_HOST"), os.Getenv("DB_USER"), os.Getenv("DB_PASS"), os.Getenv("DB_NAME"))
+		os.Getenv("DB_HOST"), os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_NAME"))
 	var err error
 	db, err = sql.Open("postgres", connStr)
 	if err != nil {
@@ -92,16 +92,16 @@ func main() {
     id serial PRIMARY KEY,
     device_mac VARCHAR(20) NOT NULL,
     temperature FLOAT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )`)
 	if err != nil {
 		log.Fatal("Error while creating readings table", err)
 	}
 	opts := mqtt.NewClientOptions()
 	opts.AddBroker(os.Getenv("MQTT_BROKER"))
-	opts.SetClientID(os.Getenv("go_web_app"))
-	opts.SetUsername(os.Getenv("Milan"))
-	opts.SetPassword(os.Getenv("milan123"))
+	opts.SetClientID(os.Getenv("MQTT_CLIENT_ID"))
+	opts.SetUsername(os.Getenv("MQTT_USER"))
+	opts.SetPassword(os.Getenv("MQTT_PASS"))
 
 	opts.SetDefaultPublishHandler(messageHandler)
 
