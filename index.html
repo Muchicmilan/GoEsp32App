@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ESP32 Monitor</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .controls { margin-top: 20px; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+        .on { background-color: #4CAF50; color: white; }
+        .off { background-color: #f44336; color: white; }
+    </style>
+</head>
+<body>
+<h1>Temperatura Sobe</h1>
+
+<!-- Grafik -->
+<div style="width: 800px;"><canvas id="tempChart"></canvas></div>
+
+<!-- Kontrole -->
+<div class="controls">
+    <h3>Kontrola LED-a</h3>
+    <!-- Ovde unesi MAC adresu svog uredjaja koju vidis u Serial Monitoru -->
+    <input type="text" id="macAddr" placeholder="Unesi MAC adresu (npr. AABBCC...)" value="TVOJ_MAC_OVDE">
+    <button class="on" onclick="toggleLed('1')">Uključi LED</button>
+    <button class="off" onclick="toggleLed('0')">Isključi LED</button>
+</div>
+
+<script>
+    const ctx = document.getElementById('tempChart').getContext('2d');
+    const chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Temperatura (°C)',
+                data: [],
+                borderColor: 'rgb(75, 192, 192)',
+                tension: 0.1
+            }]
+        }
+    });
+
+    // Funkcija za ucitavanje podataka
+    async function loadData() {
+        const response = await fetch('/api/readings');
+        const data = await response.json();
+
+        // Obrni niz da najstariji budu levo
+        data.reverse();
+
+        chart.data.labels = data.map(d => new Date(d.time).toLocaleTimeString());
+        chart.data.datasets[0].data = data.map(d => d.temperature);
+        chart.update();
+    }
+
+    // Funkcija za LED
+    async function toggleLed(state) {
+        const mac = document.getElementById('macAddr').value;
+        await fetch('/api/led', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ mac: mac, state: state })
+        });
+    }
+
+    // Osvezavaj grafik svakih 5 sekundi
+    setInterval(loadData, 5000);
+    loadData();
+</script>
+</body>
+</html>
