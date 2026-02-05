@@ -88,6 +88,18 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	for i := 0; i < 10; i++ {
+		err = db.Ping()
+		if err == nil {
+			break
+		}
+		fmt.Printf("Baza nije spremna, pokušavam ponovo za 2 sekunde... (%d/10)\n", i+1)
+		time.Sleep(2 * time.Second)
+	}
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("Connected to database")
 	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS readings (
     id serial PRIMARY KEY,
     device_mac VARCHAR(20) NOT NULL,
