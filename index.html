@@ -43,21 +43,30 @@
 
     // Funkcija za ucitavanje podataka
     async function loadData() {
-        const response = await fetch('/api/readings');
-        const data = await response.json();
+        try {
+            const response = await fetch('/api/readings');
+            const data = await response.json();
 
-        // Obrni niz da najstariji budu levo
-        data.reverse();
+            if (!data) {
+                console.log("Nema podataka u bazi");
+                return;
+            }
 
-        chart.data.labels = data.map(d => new Date(d.time).toLocaleTimeString());
-        chart.data.datasets[0].data = data.map(d => d.temperature);
-        chart.update();
+            // Obrni niz da najstariji budu levo
+            data.reverse();
+
+            chart.data.labels = data.map(d => new Date(d.time).toLocaleTimeString());
+            chart.data.datasets[0].data = data.map(d => d.temperature);
+            chart.update();
+        } catch (error) {
+            console.error("Greska pri ucitavanju podatka", error)
+        }
     }
 
     // Funkcija za LED
     async function toggleLed(state) {
         const mac = document.getElementById('macAddr').value;
-        await fetch('/api/led', {
+        await fetch('/api/set', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ mac: mac, state: state })
