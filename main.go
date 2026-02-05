@@ -16,7 +16,7 @@ import (
 )
 
 var db *sql.DB
-var mqqtClient mqtt.Client
+var mqttClient mqtt.Client
 
 type Reading struct {
 	Time        time.Time `json:"time"`
@@ -74,7 +74,7 @@ func setLed(c *gin.Context) {
 		return
 	}
 	topic := fmt.Sprintf("/sensor/to/set/led/%s", cmd.Mac)
-	token := mqqtClient.Publish(topic, 1, false, cmd.State)
+	token := mqttClient.Publish(topic, 1, false, cmd.State)
 	token.Wait()
 
 	c.JSON(200, gin.H{"status": "ok", "topic": topic, "val": cmd.State})
@@ -117,7 +117,7 @@ func main() {
 
 	opts.SetDefaultPublishHandler(messageHandler)
 
-	mqttClient := mqtt.NewClient(opts)
+	mqttClient = mqtt.NewClient(opts)
 	if token := mqttClient.Connect(); token.Wait() && token.Error() != nil {
 		log.Fatal(token.Error())
 	}
